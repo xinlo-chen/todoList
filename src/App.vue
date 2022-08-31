@@ -5,15 +5,16 @@
         <span class="title">
           <h2>{{ title }}</h2>
         </span>
-        <my-header :addTodo="addTodo" />
-        <my-list :todos="todos" :checkTodo="checkTodo" :deleteTodo="deleteTodo" :updateNotes="updateNotes" />
-        <my-footer :todos="todos" :checkAllTodo="checkAllTodo" :clearAllTodo="clearAllTodo" />
+        <my-header @addTodo="addTodo" />
+        <my-list :todos="todos" />
+        <my-footer :todos="todos" @checkAllTodo="checkAllTodo" @clearAllTodo="clearAllTodo" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import PubSub from 'pubsub-js'
 import MyFooter from './components/MyFooter.vue'
 import MyHeader from './components/MyHeader.vue'
 import MyList from './components/MyList.vue'
@@ -22,24 +23,19 @@ export default {
   components: { MyHeader, MyList, MyFooter },
   data() {
     return {
-      todos: [
-        { id: '001', title: '背面试题', done: true, notes: '', date: '08-30' },
-        { id: '002', title: '学习Vue', done: false, notes: '', date: '08-29' },
-        { id: '003', title: '复习JS知识点', done: true, notes: '', date: '08-28' },
+      todos: JSON.parse(localStorage.getItem('todos')) || [
+        { id: '001', title: '学习新知识', done: false, date: '08-29' },
+        { id: '002', title: '锻炼1h', done: false, date: '08-30' },
       ],
       title: '随 手 记',
     }
   },
-  mounted() {
-    this.updateTodos()
-    console.log('替换执行一次')
-  },
+
   watch: {
     todos: {
       deep: true,
       handler() {
         localStorage.setItem('todos', JSON.stringify(this.todos))
-        console.log('存储了一次')
       },
     },
   },
@@ -53,26 +49,33 @@ export default {
         if (todo.id === id) todo.done = !todo.done
       })
     },
-    deleteTodo(id) {
+    deleteTodo(_, id) {
       this.todos = this.todos.filter((todo) => todo.id !== id)
+      console.log(id)
     },
     checkAllTodo(value) {
       this.todos.forEach((todo) => {
         todo.done = value
       })
     },
-    clearAllTodo() {
-      this.todos = this.todos.filter((todo) => !todo.done)
+    clearAllTodo(done) {
+      this.todos = this.todos.filter((todo) => (todo.done = done))
     },
-    updateNotes(id, value) {
+    updateTodo(id, value) {
       this.todos.forEach((todo) => {
-        if (todo.id === id) todo.notes = value
+        if (todo.id === id) todo.title = value
       })
     },
-    updateTodos() {
-      const todos = JSON.parse(localStorage.getItem('todos'))
-      this.todos = todos
-    },
+  },
+  mounted() {
+    this.$bus.$on('checkTodo', this.checkTodo)
+    this.$bus.$on('updateTodo', this.updateTodo)
+    this.pubId = PubSub.subscribe('deleteTodo', this.deleteTodo)
+  },
+  beforeDestroy() {
+    this.$bus.$off('checkTodo')
+    this.$bus.$off('updateTodo')
+    PubSub.unsubscribe(this.pubId)
   },
 }
 </script>
@@ -106,6 +109,12 @@ h2 {
   color: #fff;
   background-color: #da4f49;
   border: 1px solid #bd362f;
+}
+.btn-edit {
+  color: #fff;
+  background-color: skyblue;
+  border: 1px solid rgb(103, 159, 180);
+  margin-right: 5px;
 }
 .btn-danger:hover {
   color: #fff;

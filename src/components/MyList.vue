@@ -1,15 +1,18 @@
 <template>
   <ul class="todo-main">
-    <MyItem v-for="todoObj in todos" :key="todoObj.id" :todo="todoObj" :checkTodo="checkTodo" :deleteTodo="deleteTodo" :updateNotes="updateNotes" />
+    <transition-group name="animate__animated animate__bounce" enter-active-class="animate__fadeInRightBig" leave-active-class="animate__fadeOutRightBig">
+      <MyItem v-for="todoObj in todos" :key="todoObj.id" :todo="todoObj" />
+    </transition-group>
   </ul>
 </template>
 
 <script>
+import 'animate.css'
 import MyItem from './MyItem.vue'
 export default {
   components: { MyItem },
   name: 'MyList',
-  props: ['todos', 'checkTodo', 'deleteTodo', 'updateNotes'],
+  props: ['todos'],
 }
 </script>
 

@@ -9,7 +9,6 @@ import { nanoid } from 'nanoid'
 import dayjs from 'dayjs'
 export default {
   name: 'MyHeader',
-  props: ['addTodo'],
   data() {
     return {
       title: '',
@@ -18,7 +17,13 @@ export default {
   methods: {
     add() {
       if (!this.title.trim()) return alert('输入不能为空')
-      this.addTodo({ id: nanoid(), title: this.title, done: false, notes: '', date: dayjs(Date.now()).format('MM-DD') })
+      const todoObj = {
+        id: nanoid(),
+        title: this.title,
+        done: false,
+        date: dayjs(Date.now()).format('MM-DD'),
+      }
+      this.$emit('addTodo', todoObj)
       this.title = ''
     },
   },

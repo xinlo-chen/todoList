@@ -1,43 +1,60 @@
 <template>
   <li>
     <label>
-      <input type="checkbox" :checked="todo.done" @change="handelCheck" />
-      <span>{{ todo.title }}</span>
+      <input type="checkbox" :checked="todo.done" @change="handelCheck(todo.id)" />
+      <span v-show="!todo.isEdit">{{ todo.title }}</span>
+      <input type="text" v-show="todo.isEdit" :value="todo.title" @blur="handleBlur(todo, $event)" ref="inputTitle" />
     </label>
-    <span class="box">
-      <span class="note1" v-text="todo.notes"></span>
-      <input class="note" type="text" placeholder="点击添加或修改备注..." v-model.lazy="notes" @click="update" />
-    </span>
-    <button class="btn btn-danger" @click="handelDelete">删除</button>
+    <!-- <span class="box">
+      <span class="note1" v-text="todo.notes" v-show="!todo.isEdit"></span>
+      <input class="note" type="text" placeholder="点击添加或修改备注..." v-model="notes" v-show="todo.isEdit" @blur="update(todo)" />
+    </span> -->
+    <button class="btn btn-danger" @click="handleDelete(todo.id)">删除</button>
+    <button v-show="!todo.isEdit" class="btn btn-edit" @click="handleEdit(todo)">编辑</button>
     <span class="date">{{ todo.date }}</span>
   </li>
 </template>
 
 <script>
+import PubSub from 'pubsub-js'
 export default {
   name: 'MyItem',
-  props: ['todo', 'checkTodo', 'deleteTodo', 'updateNotes'],
-  data() {
-    return {
-      notes: '',
-    }
-  },
+  props: ['todo'],
   methods: {
-    handelCheck() {
-      this.checkTodo(this.todo.id)
+    handelCheck(id) {
+      this.$bus.$emit('checkTodo', id)
     },
-    handelDelete() {
-      if (confirm('请确认是否删除该项')) this.deleteTodo(this.todo.id)
+    handleDelete(id) {
+      if (confirm('请确认是否删除该项')) PubSub.publish('deleteTodo', id)
     },
-    update() {
-      console.log(this.notes)
+    handleEdit(todo) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (todo.hasOwnProperty('isEdit')) {
+        todo.isEdit = true
+      } else {
+        // console.log('@')
+        this.$set(todo, 'isEdit', true)
+      }
+      this.$nextTick(function () {
+        this.$refs.inputTitle.focus()
+      })
     },
+    handleBlur(todo, e) {
+      todo.isEdit = false
+      if (!e.target.value.trim()) return alert('输入不能为空！')
+      this.$bus.$emit('updateTodo', todo.id, e.target.value)
+    },
+
+    /*   update(id, notes) {
+      this.$bus.$emit('updateNotes', id, notes)
+      console.log(id, notes)
+    }, */
   },
-  watch: {
+  /* watch: {
     notes(value) {
-      this.updateNotes(this.todo.id, value)
+      this.$bus.$emit('updateNotes', this.todo.id, value)
     },
-  },
+  }, */
 }
 </script>
 
@@ -111,13 +128,8 @@ li .note:focus {
 li .note {
   display: none;
 }
-li:hover .note {
-  display: block;
-}
 li .note1 {
   display: block;
-}
-li:hover .note1 {
-  display: none;
+  color: rgb(16, 163, 248);
 }
 </style>
