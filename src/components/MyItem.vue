@@ -1,48 +1,64 @@
 <template>
   <li>
     <label>
-      <input type="checkbox" :checked="todo.done" @change="handelCheck(todo.id)" />
+      <input
+        type="checkbox"
+        :checked="todo.done"
+        @change="handelCheck(todo.id)"
+      />
       <span v-show="!todo.isEdit">{{ todo.title }}</span>
-      <input type="text" v-show="todo.isEdit" :value="todo.title" @blur="handleBlur(todo, $event)" ref="inputTitle" />
+      <input
+        type="text"
+        v-show="todo.isEdit"
+        :value="todo.title"
+        @blur="handleBlur(todo, $event)"
+        ref="inputTitle"
+      />
     </label>
     <!-- <span class="box">
       <span class="note1" v-text="todo.notes" v-show="!todo.isEdit"></span>
       <input class="note" type="text" placeholder="点击添加或修改备注..." v-model="notes" v-show="todo.isEdit" @blur="update(todo)" />
     </span> -->
     <button class="btn btn-danger" @click="handleDelete(todo.id)">删除</button>
-    <button v-show="!todo.isEdit" class="btn btn-edit" @click="handleEdit(todo)">编辑</button>
+    <button
+      v-show="!todo.isEdit"
+      class="btn btn-edit"
+      @click="handleEdit(todo)"
+    >
+      编辑
+    </button>
     <span class="date">{{ todo.date }}</span>
   </li>
 </template>
 
 <script>
-import PubSub from 'pubsub-js'
+import PubSub from "pubsub-js";
 export default {
-  name: 'MyItem',
-  props: ['todo'],
+  name: "MyItem",
+  props: ["todo"],
   methods: {
     handelCheck(id) {
-      this.$bus.$emit('checkTodo', id)
+      this.$bus.$emit("checkTodo", id);
     },
     handleDelete(id) {
-      if (confirm('请确认是否删除该项')) PubSub.publish('deleteTodo', id)
+      if (confirm("请确认是否删除该项")) PubSub.publish("deleteTodo", id);
     },
     handleEdit(todo) {
       // eslint-disable-next-line no-prototype-builtins
-      if (todo.hasOwnProperty('isEdit')) {
-        todo.isEdit = true
+      if (todo.hasOwnProperty("isEdit")) {
+        todo.isEdit = true;
       } else {
         // console.log('@')
-        this.$set(todo, 'isEdit', true)
+        this.$set(todo, "isEdit", true);
       }
       this.$nextTick(function () {
-        this.$refs.inputTitle.focus()
-      })
+        this.$refs.inputTitle.focus();
+      });
     },
     handleBlur(todo, e) {
-      todo.isEdit = false
-      if (!e.target.value.trim()) return alert('输入不能为空！')
-      this.$bus.$emit('updateTodo', todo.id, e.target.value)
+      todo.isEdit = false;
+      if (!e.target.value.trim()) return alert("输入不能为空！");
+      this.$bus.$emit("updateTodo", todo.id, e.target.value);
     },
 
     /*   update(id, notes) {
@@ -55,7 +71,7 @@ export default {
       this.$bus.$emit('updateNotes', this.todo.id, value)
     },
   }, */
-}
+};
 </script>
 
 <style scoped>
@@ -65,7 +81,7 @@ li {
   list-style: none;
   height: 36px;
   line-height: 36px;
-  padding: 0 5px;
+  padding: 1px 5px;
   border-bottom: 1px solid #ddd;
 }
 
